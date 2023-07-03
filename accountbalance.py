@@ -21,14 +21,11 @@ handler = WebhookHandler(settings.ACCOUNTBALANCE_SECRET)
 
 @ app.route("/callback", methods=['POST'])
 def callback():
-    # get X-Line-Signature header value
-    signature = request.headers['X-Line-Signature']
-    # get request body as text
-    body = request.get_data(as_text=True)
+    signature = request.headers['X-Line-Signature']     # get X-Line-Signature header value
+    body = request.get_data(as_text=True)       # get request body as text
     app.logger.info("Request body: " + body)
-    # handle webhook body
     try:
-        handler.handle(body, signature)
+        handler.handle(body, signature)     # handle webhook body
     except InvalidSignatureError:
         abort(400)
     return 'OK'
@@ -36,7 +33,7 @@ def callback():
 @ handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     if event.message.text != "":
-        line_bot_api.reply_message(event.reply_token,TextSendMessage(text="紀錄成功"))
+        line_bot_api.reply_message(event.reply_token,TextSendMessage(text=f"收到 {event.message.text}"))
         pass
     
         while True:
@@ -52,7 +49,7 @@ def handle_message(event):
             if textt!="":
                 json_str = json.dumps({datetime.date.today()}, default=str)
                 worksheet.append_row((str(datetime.date.today()), textt))
-                print('新增一列資料到試算表' ,settings.sheet_url)
+                print('新增一列資料到試算表' ,str(datetime.date.today()), textt)
                 return textt
 
 if __name__ == "__main__":
