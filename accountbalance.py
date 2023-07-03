@@ -1,6 +1,13 @@
+import datetime
+import json
 import os
+import sys
 
+import gspread
+import requests
 from flask import Flask, abort, request
+from google.oauth2.service_account import credentials
+from oauth2client.service_account import ServiceAccountCredentials as SAC
 
 import settings
 from linebot import LineBotApi, WebhookHandler
@@ -28,10 +35,25 @@ def callback():
 
 @ handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    if event.message.text =='a':
-        msg = (TextSendMessage(text='這是測試'))
-        line_bot_api.reply_message(event.reply_token, msg)
+    if event.message.text != "":
+        line_bot_api.reply_message(event.reply_token,TextSendMessage(text="紀錄成功"))
+        pass
+    
+        while True:
+            try:
+                scope = ['https://spreadsheets.google.com/feeds']
+                gc = gspread.service_account(filename=settings.GDriveJSON)
+                worksheet = gc.open_by_url(settings.sheet_url).worksheet('AccountBalance')
+            except Exception as ex:
+                print('無法連線Google試算表', ex)
+                sys.exit(1)
+            textt=""
+            textt+=event.message.text
+            if textt!="":
+                json_str = json.dumps({datetime.date.today()}, default=str)
+                worksheet.append_row((str(datetime.date.today()), textt))
+                print('新增一列資料到試算表' ,settings.sheet_url)
+                return textt
 
 if __name__ == "__main__":
-    port = int(os.environ.get('PORT', 8000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(debug=True,port=8000)
