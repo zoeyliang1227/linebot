@@ -1,10 +1,15 @@
 import datetime
 import json
 import os
+import re
 import sys
+import time
 
 import gspread
+import pandas as pd
+import pygsheets
 import requests
+from bs4 import BeautifulSoup as bs
 from flask import Flask, abort, request
 from google.oauth2.service_account import credentials
 from oauth2client.service_account import ServiceAccountCredentials as SAC
@@ -32,15 +37,17 @@ def callback():
 
 @ handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    if event.message.text != "":
-        line_bot_api.reply_message(event.reply_token,TextSendMessage(text=f"收到 {event.message.text}"))
+    if event.message.text != "":    #event.message.text 取得使用者輸入的文字
+        account_type = line_bot_api.reply_message(event.reply_token,TextSendMessage(text=f"收到 {event.message.text}，請問種類?"))
         pass
     
         while True:
             try:
                 scope = ['https://spreadsheets.google.com/feeds']
                 gc = gspread.service_account(filename=settings.GDriveJSON)
-                worksheet = gc.open_by_url(settings.sheet_url).worksheet('AccountBalance')
+                print('132')
+                worksheet = gc.open_by_url(settings.sheet_url).worksheet(settings.GSpreadSheet)
+                
             except Exception as ex:
                 print('無法連線Google試算表', ex)
                 sys.exit(1)
@@ -49,8 +56,9 @@ def handle_message(event):
             if textt!="":
                 json_str = json.dumps({datetime.date.today()}, default=str)
                 worksheet.append_row((str(datetime.date.today()), textt))
-                print('新增一列資料到試算表' ,str(datetime.date.today()), textt)
+                print('新增一列資料到試算表' ,str(datetime.date.today()), account_type, textt)
                 return textt
+
 
 if __name__ == "__main__":
     app.run(debug=True,port=8000)
