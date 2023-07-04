@@ -53,6 +53,9 @@ def handle_message(event):
                 sys.exit(1)
             textt=""
             textt+=event.message.text
+            textt = textt.split(",")
+            Name = textt[0]
+            Price = textt[1]
             if textt!="":
                 json_str = json.dumps({datetime.date.today()}, default=str)
                 worksheet.append_row((str(datetime.date.today()), textt))
